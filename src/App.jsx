@@ -74,8 +74,16 @@ const normalizePhone = (p) => String(p).replace(/[\s\-\(\)\+]/g, "").trim();
 
 // ─── Session helpers (localStorage) ──────────────────────────────────────────
 const SESSION_KEY = "bbw_session";
-const saveSession = (data) => localStorage.setItem(SESSION_KEY, JSON.stringify(data));
-const loadSession = () => { try { return JSON.parse(localStorage.getItem(SESSION_KEY)); } catch { return null; } };
+const SESSION_TTL = 2 * 60 * 60 * 1000; // 2 hours in ms
+const saveSession = (data) => localStorage.setItem(SESSION_KEY, JSON.stringify({...data, savedAt: Date.now()}));
+const loadSession = () => {
+  try {
+    const s = JSON.parse(localStorage.getItem(SESSION_KEY));
+    if(!s) return null;
+    if(Date.now() - s.savedAt > SESSION_TTL) { localStorage.removeItem(SESSION_KEY); return null; }
+    return s;
+  } catch { return null; }
+};
 const clearSession = () => localStorage.removeItem(SESSION_KEY);
 
 // ─── Static data ──────────────────────────────────────────────────────────────
